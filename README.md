@@ -4,9 +4,9 @@
 
 # Architecture
 
-**Frontend** : HTML, CSS, JavaScript
-**Backend** : NodeJS, Express
-**Database** : SQLLite
+- **Frontend** : HTML, CSS, JavaScript
+- **Backend** : NodeJS, Express
+- **Database** : SQLLite
 
 ## Run Locally
 
