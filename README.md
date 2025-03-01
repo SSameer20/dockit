@@ -1,6 +1,6 @@
 # **Dockit**
 
-## An AI Powered self-contained document scanning and matching system with a built-in credit system. Users can scan up to 20 free documents daily
+### An AI Powered self-contained document scanning and matching system with a built-in credit system. Users can scan up to 20 free documents daily
 
 # Architecture
 
