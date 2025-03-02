@@ -12,14 +12,14 @@ export async function connectDB() {
     }
   );
 
-  await db.exec(` CREATE TABLE IF NOT EXISTS users (
+  db.exec(` CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )
     `);
 
-  await db.exec(` CREATE TABLE IF NOT EXISTS admin (
+  db.exec(` CREATE TABLE IF NOT EXISTS admin (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL
