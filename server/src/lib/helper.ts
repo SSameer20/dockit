@@ -1,3 +1,4 @@
+import fs from "fs";
 const secret = "my-secret";
 export const EncryptText = (data: string): string => {
   const buffer = Buffer.from(data + secret);
@@ -17,4 +18,14 @@ export interface Token {
   password: string;
   role: string;
   expireIn: number;
+}
+
+export function WriteToLogFile(message: string) {
+  const logFile = "./src/lib/logs.txt";
+  fs.appendFile(logFile, `\n${message}`, (error) => {
+    if (error) {
+      console.log(`[ERROR]-${error}`);
+      return;
+    }
+  });
 }

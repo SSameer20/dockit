@@ -10,7 +10,7 @@ export const CreateAdmin = async (req: Request, res: Response) => {
 
     (await db).get(
       "SELECT email FROM users WHERE email = ? AND role = 'admin'",
-      [email],
+      [new String(email).toLocaleLowerCase()],
       async (error, row) => {
         if (error) {
           return res.status(400).send({ message: "Error while fetching" });
@@ -18,8 +18,6 @@ export const CreateAdmin = async (req: Request, res: Response) => {
         if (row) {
           return res.status(400).send({ message: "User already exists" });
         }
-
-        // Proceed with user creation
         const HashPassword = EncryptText(password);
         (await db).run(
           `INSERT INTO users (email, password, role) VALUES (?, ?, 'admin')`,
@@ -47,7 +45,7 @@ export const LoginAdmin = async (req: Request, res: Response) => {
 
     (await db).get(
       "SELECT id, email, password, role FROM users WHERE email = ? AND role = 'admin'",
-      [email],
+      [new String(email).toLocaleLowerCase()],
       (
         error,
         row: { id: number; email: string; password: string; role: string }

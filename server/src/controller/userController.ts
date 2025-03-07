@@ -25,8 +25,6 @@ export const CreateUser = async (req: Request, res: Response) => {
         if (row) {
           return res.status(400).send({ message: "User already exists" });
         }
-
-        // Proceed with user creation
         const HashPassword = EncryptText(password);
         (await db).run(
           `INSERT INTO users (email, password, role) VALUES (?, ?, 'user')`,
@@ -50,6 +48,7 @@ export const LoginUser = async (req: Request, res: Response) => {
 
   try {
     const { email, password } = req.body;
+
     const HashPassword = EncryptText(password);
 
     (await db).get(

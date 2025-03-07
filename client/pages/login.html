@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../css/auth.css" />
+    <title>Dockit | Login</title>
+  </head>
+  <body class="login">
+    <div class="image-banner">
+      <img src="../public/office-1.jpg" alt="banner" />
+    </div>
+    <div class="data">
+      <div class="form">
+        <h1>Welcome Back</h1>
+        <div class="form-details">
+          <input type="email" placeholder="Email" id="login-email" />
+          <input type="password" placeholder="Password" id="login-password" />
+          <select name="role" id="login-role" class="select-role">
+            <option value="user">USER</option>
+            <option value="admin">ADMIN</option>
+          </select>
+          <button id="login-btn" class="btn">Login</button>
+        </div>
+      </div>
+    </div>
+    <script src="../js/login.js"></script>
+  </body>
+</html>

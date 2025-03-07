@@ -1,16 +1,17 @@
 import sqlite3 from "sqlite3";
+import { WriteToLogFile } from "./helper";
 
 export async function connectDB() {
   const db = new sqlite3.Database(
-    "../../database.db",
+    "../../db.db",
     sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
     (error) => {
       if (error) {
-        console.log(
-          `[ERROR]-[${new Date()}]-Error while connecting to database`
-        );
+        WriteToLogFile(`[ERROR]-[${new Date()}]-${error}`);
+        return;
       }
-      console.log(`[SUCCESS]-[${new Date()}]-connecetd to database`);
+      WriteToLogFile(`[SUCCESS]-[${new Date()}]-connecetd to database`);
+      return;
     }
   );
 
