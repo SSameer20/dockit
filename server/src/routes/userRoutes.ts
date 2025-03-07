@@ -3,11 +3,14 @@ import {
   CreateUser,
   GetAllDocuments,
   LoginUser,
+  GetUserDetails,
 } from "../controller/userController";
 import { UserMiddlware } from "../middleware/userMiddleware";
 const UserRouter = Router();
 UserRouter.post("/auth/register", CreateUser);
 UserRouter.post("/auth/login", LoginUser);
+
+UserRouter.get("/details", UserMiddlware, GetUserDetails);
 UserRouter.get("/documents", UserMiddlware, GetAllDocuments);
 UserRouter.get("/documents/:id", UserMiddlware, GetAllDocuments);
 

@@ -12,11 +12,7 @@
 
 ### Run Manually
 
-- Run Server
+- Run Server by opening new terminal and navigate and start
 - `cd server && npm run dev`
-- Run Client
-- `cd client`
-
-### Run using Docker
-
-- `docker-compose up dockit`
+- Run Client by openning new terminal and navigate and start
+- `cd client && npx serve`

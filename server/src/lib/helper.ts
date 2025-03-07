@@ -1,3 +1,4 @@
+import { Request } from "express";
 import fs from "fs";
 const secret = "my-secret";
 export const EncryptText = (data: string): string => {
@@ -12,10 +13,13 @@ export const DecryptText = (hashData: string): string => {
   return decryptData.slice(0, decryptData.length - 9);
 };
 
+export interface AuthenticatedRequest extends Request {
+  user?: Token;
+}
 export interface Token {
   id: number;
   email: string;
-  password: string;
+  password?: string;
   role: string;
   expireIn: number;
 }

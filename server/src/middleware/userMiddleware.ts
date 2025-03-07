@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
-import { DecryptText, Token } from "../lib/helper";
+import { Response, NextFunction } from "express";
+import { AuthenticatedRequest, DecryptText, Token } from "../lib/helper";
 
 export const UserMiddlware = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) => {
@@ -22,7 +22,7 @@ export const UserMiddlware = async (
       return;
     }
 
-    (req as any).user = data;
+    req.user = data;
     next();
   } catch (error) {
     res.status(404).send({ message: "please try again" });
