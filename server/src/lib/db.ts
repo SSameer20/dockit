@@ -25,10 +25,21 @@ export async function connectDB() {
         )
     `);
 
+  db.exec(`CREATE TABLE IF NOT EXISTS credits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      request_credits INTEGER DEFAULT 1,
+      requestDate DATE DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) references users(id) ON DELETE CASCADE 
+  )
+`);
+
   db.exec(` CREATE TABLE IF NOT EXISTS documents (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   type TEXT NOT NULL,
+  file_name TEXT DEFAULT 'UNKNOWN' NOT NULL,
   content TEXT,
   createdAT DATE DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) references users(id) ON DELETE CASCADE

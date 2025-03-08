@@ -12,7 +12,7 @@
       <div class="navigation-items">
         <a href="/">Home</a>
         <a href="/pages/upload">Upload</a>
-        <a href="/pages/register">Logout</a>
+        <button id="logout-btn">Logout</button>
       </div>
     </nav>
 
@@ -24,8 +24,23 @@
             <span id="user-email">Sameer.kattubadi@gmail.com</span>
           </div>
         </div>
-        <div class="box box2">2</div>
-        <div class="box box3">3</div>
+        <div class="box box2">
+          <h1>20</h1>
+          <span>Credits Left</span>
+        </div>
+        <div class="box box3">
+          <span class="title">Request Credits</span>
+          <input
+            type="number"
+            name="credits-request"
+            id="credits-request"
+            max="10"
+          />
+          <button id="request-btn">request</button>
+        </div>
+        <div class="box box4">
+          <span class="btn" id="request-btn">Request Credits</span>
+        </div>
       </div>
     </section>
     <script src="../js/app.js"></script>

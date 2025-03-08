@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends Request {
   user?: Token;
 }
 export interface Token {
-  id: number;
+  userId: number;
   email: string;
   password?: string;
   role: string;

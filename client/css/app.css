@@ -1,6 +1,8 @@
-body {
+* {
   margin: 0;
   padding: 0;
+}
+body {
   width: 99vw;
   height: 100vh;
   overflow: hidden;
@@ -8,25 +10,42 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-color: #0d0218;
 }
 
 nav {
   width: 100%;
   height: 10%;
-  border-bottom: solid 1px black;
+  border-bottom: solid 1px rgb(223, 210, 210);
   display: flex;
   justify-content: space-around;
   align-items: center;
 }
+.navigation h1 {
+  color: white;
+}
 
 .navigation-items {
   display: flex;
+  align-items: center;
   gap: 20px;
+}
+
+.navigation-items > * {
+  cursor: pointer;
 }
 
 .navigation-items a {
   text-decoration: none;
-  color: black;
+  color: rgb(211, 196, 196);
+}
+
+#logout-btn {
+  background-color: blueviolet;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
 }
 
 .app-body {
@@ -35,6 +54,7 @@ nav {
   display: flex;
   justify-content: center;
   align-items: center;
+  color: white;
 }
 
 .bento {
@@ -53,18 +73,35 @@ nav {
 .box1 {
   grid-column: span 2;
   grid-row: span 2;
-  background: red;
 }
 
 .box2 {
   grid-column: span 1;
-  grid-row: span 2;
-  background: rgb(47, 26, 26);
+  grid-row: span 1;
 }
-.box3 {
+.box4 {
   grid-column: span 3;
   grid-row: span 1;
-  background: rgb(47, 26, 26);
+}
+.box3 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  grid-column: span 1;
+  grid-row: span 1;
+}
+.box3 input {
+  width: 50px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+}
+.box3 button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #e9e5ff;
+  color: #18012d;
 }
 
 .box {
@@ -72,6 +109,7 @@ nav {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  border: 0.1px solid rgb(248, 239, 239);
 }
 .box1 .box-body {
   display: flex;

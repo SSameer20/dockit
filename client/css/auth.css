@@ -1,11 +1,14 @@
-body {
+* {
   margin: 0;
   padding: 0;
+}
+body {
   width: 99vw;
   height: 99vh;
   display: flex;
   gap: auto;
   padding: auto;
+  background-color: #0d0218;
 }
 .image-banner {
   width: 50%;
@@ -27,7 +30,7 @@ body {
 .data .form {
   width: 60%;
   min-height: 60%;
-  color: #000;
+  color: #f3ecec;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -59,7 +62,7 @@ button {
 }
 
 .form {
-  border: solid #0000005e;
+  border: solid #e4d9d95e;
   border-radius: 20px;
 }
 .form-details button {

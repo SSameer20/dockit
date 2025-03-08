@@ -3,10 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/index.css" />
     <title>Dockit</title>
   </head>
   <body>
-    <button><a href="./pages/login.html">Login</a></button>
-    <button><a href="./pages/register.html">Register</a></button>
+    <nav>
+      <span class="title">Dockit</span>
+      <div class="navigation-items">
+        <button class="login-btn">
+          <a href="./pages/login.html">Login</a>
+        </button>
+        <button class="register-btn">
+          <a href="./pages/register.html">Register</a>
+        </button>
+      </div>
+    </nav>
+    <section class="main-body">
+      <div class="flare"></div>
+      <div class="hero-section">
+        <span class="title">Dockit</span>
+        <span class="description"
+          >An AI Powered self-contained document scanning and matching system
+          with a built-in credit system.
+        </span>
+      </div>
+      <img src="./public/document.svg" alt="document" />
+    </section>
   </body>
 </html>

@@ -1,0 +1,90 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+body {
+  background-color: #0d0218;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body nav {
+  width: 100%;
+  height: 10%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+nav .title {
+  font-size: xx-large;
+  color: white;
+}
+
+nav .navigation-items {
+  display: flex;
+  gap: 20px;
+}
+
+.login-btn {
+  border: 1px solid white;
+  background: transparent;
+}
+
+.login-btn a {
+  color: white;
+}
+.register-btn a {
+  color: rgb(12, 5, 5);
+}
+.register-btn {
+  border: 1px solid transparent;
+  background: #9778ff;
+  color: #18012d;
+}
+nav .navigation-items button a {
+  text-decoration: none;
+}
+nav .navigation-items button {
+  padding: 10px 20px;
+  border-radius: 10px;
+}
+.main-body {
+  height: 80%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: relative;
+}
+.main-body img {
+  aspect-ratio: 1/1;
+  width: 20vw;
+}
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  width: 30%;
+}
+
+.hero-section .title {
+  font-size: 58px;
+  color: #9778ff;
+}
+
+.hero-section .description {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.671);
+}
+
+.flare {
+  position: absolute;
+  justify-content: center;
+  left: 30vw;
+  width: 0px;
+  height: 150vh;
+  transform: rotate(-60deg);
+  box-shadow: 0 0 800px 15px white;
+  background: white;
+}

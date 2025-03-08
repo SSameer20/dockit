@@ -3,20 +3,25 @@ import { connectDB } from "../lib/db";
 import fs from "fs";
 import path from "path";
 import { AuthenticatedRequest, EncryptText, Token } from "../lib/helper";
-import { error } from "console";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+const uploadDir = path.join(__dirname, "uploads");
 
-const destinationDIR = path.join(__dirname, "../../uploads");
-if (!fs.existsSync(destinationDIR)) {
-  fs.mkdirSync(destinationDIR);
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
+const dbPromise = open({
+  filename: "../../db.db",
+  driver: sqlite3.Database,
+});
 
 export const CreateUser = async (req: Request, res: Response) => {
-  const db = connectDB();
+  const db = await connectDB();
 
   try {
     const { email, password } = req.body;
 
-    (await db).get(
+    db.get(
       "SELECT email FROM users WHERE email = ? AND role = 'user'",
       [email],
       async (error, row) => {
@@ -27,7 +32,7 @@ export const CreateUser = async (req: Request, res: Response) => {
           return res.status(400).send({ message: "User already exists" });
         }
         const HashPassword = EncryptText(password);
-        (await db).run(
+        db.run(
           `INSERT INTO users (email, password, role) VALUES (?, ?, 'user')`,
           [email, HashPassword],
           (insertError) => {
@@ -45,14 +50,14 @@ export const CreateUser = async (req: Request, res: Response) => {
 };
 
 export const LoginUser = async (req: Request, res: Response) => {
-  const db = connectDB();
+  const db = await connectDB();
 
   try {
     const { email, password } = req.body;
 
     const HashPassword = EncryptText(password);
 
-    (await db).get(
+    db.get(
       "SELECT id, email, password, role FROM users WHERE email = ? AND role = 'user'",
       [email],
       (
@@ -91,19 +96,32 @@ export const GetUserDetails = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const user = req.user;
-  const db = connectDB();
   try {
-    (await db).get(
-      `SELECT id, email, role, credits FROM users WHERE id = ?`,
-      [user?.id],
-      (error, row: { id: number; email: string; credits: number }) => {
+    const user = req.user;
+    const db = await connectDB();
+    if (!user?.userId) {
+      res.status(404).send({ message: "unauthorized" });
+      return;
+    }
+
+    db.get(
+      ` SELECT u.id, u.email, u.role, u.credits, IFNULL(COUNT(d.id), 0) AS document_count
+      FROM users u
+      LEFT JOIN documents d ON u.id = d.user_id
+      WHERE u.id = ?
+      GROUP BY u.id`,
+      [user.userId],
+      (error, row) => {
         if (error) {
           res.status(404).send({ message: "error while fetching details" });
           return;
         }
-        const data = user;
-        res.status(200).send({ message: "data fetched", data });
+
+        if (!row) {
+          res.status(404).send({ message: "No data available" });
+          return;
+        }
+        res.status(200).send({ message: "data fetched", data: row });
         return;
       }
     );
@@ -115,62 +133,126 @@ export const GetUserDetails = async (
     });
   }
 };
-export const GetAllDocuments = async (req: Request, res: Response) => {
-  const db = connectDB();
+
+export const UploadDocument = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const db = await dbPromise;
+    const user = req.user;
+    const fileName = req.headers["fileName"] as string;
+    const fileType = req.headers["type"] as string;
+    const filePath = path.join(
+      uploadDir,
+      `user_${user?.userId}_${fileName}_${Date.now()}_${fileType.split("/")[1]}`
+    );
+
+    const WRITE_DOCUMENT = fs.createWriteStream(filePath);
+    req.on("data", (chunk) => {
+      WRITE_DOCUMENT.write(chunk);
+    });
+    req.on("error", () => {
+      return res.status(500).json({ message: "File upload failed" });
+    });
+    req.on("end", () => {
+      console.log();
+      return res
+        .status(201)
+        .send({ message: "uploaded", data: WRITE_DOCUMENT });
+    });
+
+    // if (!user?.userId) {
+    //   return res.status(400).json({ message: "User ID missing" });
+    // }
+    // const extension = fileType.split("/")[1];
+    // const filePath = path.join(
+    //   __dirname,
+    //   "uploads",
+    //   `user_${user.userId}_${Date.now()}.${extension}`
+    // );
+    // let fileBuffer = Buffer.alloc(0);
+
+    // req.on("data", (chunk) => {
+    //   fileBuffer = Buffer.concat([fileBuffer, chunk]);
+    // });
+
+    // req.on("error", (err) => {
+    //   console.error("Error processing file:", err);
+    //   res.status(500).json({ message: "File processing error" });
+    //   return;
+    // });
+    // req.on("end", async () => {
+    //   const filePath = `../../uploads/${fileName}`;
+    //   fs.writeFileSync(filePath, fileBuffer);
+
+    //   let extractedText = "";
+
+    //   if (fileType === "text/plain") {
+    //     extractedText = fileBuffer.toString("utf-8");
+    //   } else if (fileType === "application/pdf") {
+    //     extractedText = extractPDFText(fileBuffer);
+    //   } else if (fileType === "text/csv") {
+    //     extractedText = fileBuffer.toString("utf-8");
+    //   }
+    //   await db.exec(
+    //     `
+    //     BEGIN TRANSACTION;
+
+    //     INSERT INTO documents (user_id, file_name, type, content)
+    //     VALUES (${user.userId}, '${fileName}', '${extension}', '${extractedText}');
+
+    //     UPDATE users SET credits = credits - 1 WHERE id = ${user?.userId};
+
+    //     COMMIT;
+    //     `
+    //   );
+
+    // res.status(201).json({ message: "Document uploaded successfully" });
+    // });
+  } catch (error) {
+    console.error("Upload Error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+export const GetUserDocuments = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const db = await connectDB();
+  const user = req.user;
 
   try {
-    (await db).all("SELECT type, content FROM documents", (error, rows) => {
+    db.all(
+      `SELECT type, content FROM documents WHERE user_id = ?`,
+      [user?.userId],
+      (error, rows) => {
+        if (error) {
+          return res
+            .status(400)
+            .send({ message: "Error connecting to database" });
+        }
+        return res.status(200).send({ message: "OK", documents: rows || [] });
+      }
+    );
+  } catch (error) {
+    res.status(400).send({ message: "Error" });
+  }
+};
+
+export const GetAllDocuments = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const db = await connectDB();
+  try {
+    db.all(`SELECT type, content FROM documents`, (error, rows) => {
       if (error) {
         return res
           .status(400)
           .send({ message: "Error connecting to database" });
       }
       return res.status(200).send({ message: "OK", documents: rows || [] });
-    });
-  } catch (error) {
-    res.status(400).send({ message: "Error" });
-  }
-};
-
-export const UploadDocument = async (req: Request, res: Response) => {
-  const db = connectDB();
-
-  try {
-    const fileType = req.headers["type"] as string;
-    const fileName = req.headers["filename"] as string;
-    const filePath = path.join(
-      destinationDIR,
-      `user${1}_${fileName}_${Date.now()}.${fileType}`
-    );
-
-    const WRITE_DOCUMENT = fs.createWriteStream(filePath);
-
-    req.on("data", (data) => {
-      WRITE_DOCUMENT.write(data);
-    });
-
-    req.on("error", (err) => {
-      return res.status(500).json({
-        error: "Failed to upload file",
-        details: err.message,
-      });
-    });
-
-    req.on("end", async () => {
-      WRITE_DOCUMENT.end();
-
-      (await db).run(
-        `INSERT INTO documents (user_id, file_path, type) VALUES (?, ?, ?)`,
-        [1, filePath, fileType],
-        (error) => {
-          if (error) {
-            return res.status(500).json({ message: "Failed to save document" });
-          }
-          return res
-            .status(200)
-            .json({ message: "File uploaded successfully" });
-        }
-      );
     });
   } catch (error) {
     res.status(400).send({ message: "Error" });
