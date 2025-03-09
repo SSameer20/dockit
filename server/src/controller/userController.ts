@@ -2,7 +2,12 @@ import { Request, Response } from "express";
 import { connectDB } from "../lib/db";
 import fs from "fs";
 import path from "path";
-import { AuthenticatedRequest, EncryptText, Token } from "../lib/helper";
+import {
+  AuthenticatedRequest,
+  EncryptText,
+  ExtractDataFromPDF,
+  Token,
+} from "../lib/helper";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 const uploadDir = path.join(__dirname, "uploads");
@@ -11,7 +16,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 const dbPromise = open({
-  filename: "../../db.db",
+  filename: "./db.db",
   driver: sqlite3.Database,
 });
 
@@ -139,102 +144,44 @@ export const UploadDocument = async (
   res: Response
 ) => {
   try {
-    const db = await dbPromise;
+    const db = await connectDB();
     const user = req.user;
     const fileName = req.headers["fileName"] as string;
-    const fileType = req.headers["type"] as string;
-    const filePath = path.join(
-      uploadDir,
-      `user_${user?.userId}_${fileName}_${Date.now()}_${fileType.split("/")[1]}`
-    );
-
+    const type = (req.headers["type"] as string).split("/")[1];
+    const filePath = `./uploads/user_${user?.userId}_${Date.now()}.${type}`;
     const WRITE_DOCUMENT = fs.createWriteStream(filePath);
-    req.on("data", (chunk) => {
-      WRITE_DOCUMENT.write(chunk);
+
+    req.pipe(WRITE_DOCUMENT);
+
+    WRITE_DOCUMENT.on("finish", async () => {
+      const PDFBuffer = fs.readFileSync(filePath);
+      const EText = await ExtractDataFromPDF(PDFBuffer);
+      db.run(`BEGIN TRANSACTION;`);
+      db.run(
+        `INSERT INTO documents(user_id, file_name, type,content) VALUES (?, ?, ?, ?)`,
+        [user?.userId, fileName, type, EText]
+      );
+      db.run(`UPDATE users SET credits = credits - 1 WHERE id = ?`, [
+        user?.userId,
+      ]);
+      db.run(`COMMIT;`);
+
+      return res.status(200).send({
+        message: "File uploaded successfully",
+        file: filePath,
+        data: EText,
+      });
     });
-    req.on("error", () => {
-      return res.status(500).json({ message: "File upload failed" });
-    });
-    req.on("end", () => {
-      console.log();
-      return res
-        .status(201)
-        .send({ message: "uploaded", data: WRITE_DOCUMENT });
+
+    WRITE_DOCUMENT.on("error", (err) => {
+      console.error("File Write Error:", err);
+      return res.status(500).send({ message: "File upload failed" });
     });
 
-    // if (!user?.userId) {
-    //   return res.status(400).json({ message: "User ID missing" });
-    // }
-    // const extension = fileType.split("/")[1];
-    // const filePath = path.join(
-    //   __dirname,
-    //   "uploads",
-    //   `user_${user.userId}_${Date.now()}.${extension}`
-    // );
-    // let fileBuffer = Buffer.alloc(0);
-
-    // req.on("data", (chunk) => {
-    //   fileBuffer = Buffer.concat([fileBuffer, chunk]);
-    // });
-
-    // req.on("error", (err) => {
-    //   console.error("Error processing file:", err);
-    //   res.status(500).json({ message: "File processing error" });
-    //   return;
-    // });
-    // req.on("end", async () => {
-    //   const filePath = `../../uploads/${fileName}`;
-    //   fs.writeFileSync(filePath, fileBuffer);
-
-    //   let extractedText = "";
-
-    //   if (fileType === "text/plain") {
-    //     extractedText = fileBuffer.toString("utf-8");
-    //   } else if (fileType === "application/pdf") {
-    //     extractedText = extractPDFText(fileBuffer);
-    //   } else if (fileType === "text/csv") {
-    //     extractedText = fileBuffer.toString("utf-8");
-    //   }
-    //   await db.exec(
-    //     `
-    //     BEGIN TRANSACTION;
-
-    //     INSERT INTO documents (user_id, file_name, type, content)
-    //     VALUES (${user.userId}, '${fileName}', '${extension}', '${extractedText}');
-
-    //     UPDATE users SET credits = credits - 1 WHERE id = ${user?.userId};
-
-    //     COMMIT;
-    //     `
-    //   );
-
-    // res.status(201).json({ message: "Document uploaded successfully" });
-    // });
-  } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-export const GetUserDocuments = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  const db = await connectDB();
-  const user = req.user;
-
-  try {
-    db.all(
-      `SELECT type, content FROM documents WHERE user_id = ?`,
-      [user?.userId],
-      (error, rows) => {
-        if (error) {
-          return res
-            .status(400)
-            .send({ message: "Error connecting to database" });
-        }
-        return res.status(200).send({ message: "OK", documents: rows || [] });
-      }
-    );
+    req.on("error", (err) => {
+      console.error("Request Read Error:", err);
+      return res.status(400).send({ message: "File upload failed" });
+    });
   } catch (error) {
     res.status(400).send({ message: "Error" });
   }

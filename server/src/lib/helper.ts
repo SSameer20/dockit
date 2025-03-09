@@ -1,5 +1,7 @@
 import { Request } from "express";
 import fs from "fs";
+import zlib from "zlib";
+import pdf from "pdf-parse";
 const secret = "my-secret";
 export const EncryptText = (data: string): string => {
   const buffer = Buffer.from(data + secret);
@@ -32,4 +34,9 @@ export function WriteToLogFile(message: string) {
       return;
     }
   });
+}
+
+export async function ExtractDataFromPDF(bf: Buffer): Promise<string> {
+  const data = await pdf(bf);
+  return data.text;
 }
