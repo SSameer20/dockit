@@ -3,7 +3,7 @@ import { WriteToLogFile } from "./helper";
 
 export async function connectDB() {
   const db = new sqlite3.Database(
-    "../../db.db",
+    "./db.db",
     sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
     (error) => {
       if (error) {
