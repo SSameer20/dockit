@@ -1,5 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthenticatedRequest, DecryptText, Token } from "../lib/helper";
+import { connectDB } from "../lib/db";
 
 export const UserMiddlware = async (
   req: AuthenticatedRequest,
@@ -21,8 +22,12 @@ export const UserMiddlware = async (
       res.status(404).send({ message: "Token Expired" });
       return;
     }
-
+    const db = await connectDB();
     req.user = data;
+    db.run(`INSERT INTO user_requests (user_id,request) VALUES (? , ?)`, [
+      req.user.userId,
+      req.route.path,
+    ]);
     next();
   } catch (error) {
     res.status(404).send({ message: "please try again" });

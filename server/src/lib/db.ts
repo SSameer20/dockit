@@ -1,5 +1,5 @@
 import sqlite3 from "sqlite3";
-import { WriteToLogFile } from "./helper";
+import { Log } from "./helper";
 
 export async function connectDB() {
   const db = new sqlite3.Database(
@@ -7,10 +7,10 @@ export async function connectDB() {
     sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
     (error) => {
       if (error) {
-        WriteToLogFile(`[ERROR]-[${new Date()}]-${error}`);
+        Log.error(`${error}`);
         return;
       }
-      WriteToLogFile(`[SUCCESS]-[${new Date()}]-connecetd to database`);
+      Log.info(`connecetd to database`);
       return;
     }
   );
@@ -21,11 +21,10 @@ export async function connectDB() {
             password TEXT NOT NULL,
             role TEXT DEFAULT 'user',
             credits INTEGER DEFAULT 20
-           
         )
     `);
 
-  db.exec(`CREATE TABLE IF NOT EXISTS credits (
+  db.exec(`CREATE TABLE IF NOT EXISTS request (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       status TEXT DEFAULT 'pending',
@@ -42,6 +41,15 @@ export async function connectDB() {
   file_name TEXT DEFAULT 'UNKNOWN' NOT NULL,
   content TEXT,
   createdAT DATE DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) references users(id) ON DELETE CASCADE
+)
+`);
+
+  db.exec(` CREATE TABLE IF NOT EXISTS user_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  request TEXT,
+  requestAt DATE DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) references users(id) ON DELETE CASCADE
 )
 `);

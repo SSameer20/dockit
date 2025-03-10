@@ -26,15 +26,30 @@ export interface Token {
   expireIn: number;
 }
 
-export function WriteToLogFile(message: string) {
-  const logFile = "./src/lib/logs.txt";
-  fs.appendFile(logFile, `\n${message}`, (error) => {
-    if (error) {
-      console.log(`[ERROR]-${error}`);
-      return;
-    }
-  });
-}
+export const Log = {
+  info: (message: string) => {
+    const logFile = "./src/lib/logs.txt";
+    fs.appendFile(
+      logFile,
+      `\n[SUCCESS]-[${new Date()}]-${message}`,
+      (error) => {
+        if (error) {
+          console.log(`${error}`);
+          return;
+        }
+      }
+    );
+  },
+  error: (message: string) => {
+    const logFile = "./src/lib/logs.txt";
+    fs.appendFile(logFile, `\n[ERROR]-[${new Date()}]-${message}`, (error) => {
+      if (error) {
+        console.log(`[ERROR]-${error}`);
+        return;
+      }
+    });
+  },
+};
 
 export async function ExtractDataFromPDF(bf: Buffer): Promise<string> {
   const data = await pdf(bf);

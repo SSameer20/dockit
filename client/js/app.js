@@ -1,6 +1,10 @@
-window.addEventListener("load", GetUserDetails);
+window.addEventListener("DOMContentLoaded", () => {
+  GetUserDetails();
+  GetUserRequestDetails();
+});
 async function GetUserDetails() {
   const userEmail = document.getElementById("user-email");
+  const userCredits = document.getElementById("user-credits");
   userEmail.innerText = "Loading";
   const token = localStorage.getItem("token");
   if (!token) {
@@ -19,7 +23,7 @@ async function GetUserDetails() {
   }
   const data = await response.json();
   const user = data.data;
-  console.log(user.userId);
+  userCredits.innerText = user.credits;
   userEmail.innerText = user.email;
 }
 
@@ -58,4 +62,41 @@ async function RequestCredits() {
   } catch (error) {
     alert(`Error with the request`);
   }
+}
+
+async function GetUserRequestDetails() {
+  const requestArea = document.getElementById("request-area");
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Session completed Please Login Again");
+    return (location.href = "/pages/login");
+  }
+  const response = await fetch(`http://localhost:8000/user/requests`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    return (location.href = "/");
+  }
+  const data = await response.json();
+  const output = data.output;
+  console.log(data);
+  output.map((item) => {
+    const parent = document.createElement("div");
+    const child1 = document.createElement("span");
+    child1.innerText = item.request;
+    const child2 = document.createElement("span");
+    child2.innerText = item.requestAt;
+    parent.appendChild(child1);
+    parent.appendChild(child2);
+    requestArea.appendChild(parent);
+    parent.style.display = "flex";
+    parent.style.flexDirection = "row";
+    parent.style.padding = "10px";
+    parent.style.justifyContent = "space-around";
+  });
 }

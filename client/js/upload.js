@@ -35,7 +35,7 @@ async function UploadFile() {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error("Upload Error:", result);
+      console.error("Upload Error:", result.message);
       return alert("Error with request: " + result.message);
     }
 

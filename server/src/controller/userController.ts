@@ -7,6 +7,7 @@ import {
   EncryptText,
   ExtractDataFromPDF,
   Token,
+  Log,
 } from "../lib/helper";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
@@ -97,6 +98,29 @@ export const LoginUser = async (req: Request, res: Response) => {
   }
 };
 
+export const GetUserRequestData = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const db = await connectDB();
+    const user = req.user;
+    db.all(
+      `SELECT request, requestAt FROM user_requests WHERE user_id  = ? `,
+      [user?.userId],
+      (error: any, data: { RequestDetails: string; requestAt: Date }) => {
+        if (error) {
+          return res.status(404).send({ message: "error while connecting db" });
+        }
+        const output = Object.values(data);
+        return res
+          .status(200)
+          .send({ message: "fetched user details", output });
+      }
+    );
+  } catch (error) {}
+};
+
 export const GetUserDetails = async (
   req: AuthenticatedRequest,
   res: Response
@@ -146,7 +170,9 @@ export const UploadDocument = async (
   try {
     const db = await connectDB();
     const user = req.user;
-    const fileName = req.headers["fileName"] as string;
+    const fileName =
+      (req.headers["fileName"] as string) ||
+      `${user?.email.split("@")[0]}_file`;
     const type = (req.headers["type"] as string).split("/")[1];
     const filePath = `./uploads/user_${user?.userId}_${Date.now()}.${type}`;
     const WRITE_DOCUMENT = fs.createWriteStream(filePath);
@@ -156,30 +182,34 @@ export const UploadDocument = async (
     WRITE_DOCUMENT.on("finish", async () => {
       const PDFBuffer = fs.readFileSync(filePath);
       const EText = await ExtractDataFromPDF(PDFBuffer);
-      db.run(`BEGIN TRANSACTION;`);
-      db.run(
-        `INSERT INTO documents(user_id, file_name, type,content) VALUES (?, ?, ?, ?)`,
-        [user?.userId, fileName, type, EText]
-      );
-      db.run(`UPDATE users SET credits = credits - 1 WHERE id = ?`, [
-        user?.userId,
-      ]);
-      db.run(`COMMIT;`);
 
-      return res.status(200).send({
-        message: "File uploaded successfully",
-        file: filePath,
-        data: EText,
-      });
+      db.exec(
+        `
+        BEGIN TRANSACTION;
+        INSERT INTO documents(user_id, file_name, type, content) VALUES (${user?.userId}, '${fileName}', '${type}', '${EText}');
+        UPDATE users SET credits = credits - 1 WHERE id = ${user?.userId};
+        COMMIT;
+  `,
+        (error) => {
+          if (error) {
+            Log.error(`${error}`);
+            return res.status(500).send({ message: "File upload failed" });
+          }
+          return res.status(200).send({
+            message: "File uploaded successfully",
+            file: filePath,
+          });
+        }
+      );
     });
 
     WRITE_DOCUMENT.on("error", (err) => {
-      console.error("File Write Error:", err);
+      Log.error(`File Write Error: ${err}`);
       return res.status(500).send({ message: "File upload failed" });
     });
 
     req.on("error", (err) => {
-      console.error("Request Read Error:", err);
+      Log.error(`${err}`);
       return res.status(400).send({ message: "File upload failed" });
     });
   } catch (error) {
