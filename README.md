@@ -13,6 +13,6 @@
 ### Run Manually
 
 - Run Server by opening new terminal and navigate and start
-- `cd server && npm run dev`
+- `cd server && npm install && npm run dev`
 - Run Client by openning new terminal and navigate and start
 - `cd client && npx serve`
